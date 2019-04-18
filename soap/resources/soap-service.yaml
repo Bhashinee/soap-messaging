@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: soap
+  name: soap-service
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 8243
+  selector:
+    app: soap
+

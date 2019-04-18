@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: soap-deployment
+  labels:
+    app: soap
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: soap
+    spec:
+      containers:
+      - image: bhashinee/soap-esb:v2
+        name: soap
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 2181
+          name: soap

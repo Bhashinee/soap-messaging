@@ -1,9 +1,8 @@
 import ballerina/http;
-import ballerina/log;
 import ballerina/io;
+import ballerina/log;
 import ballerinax/kubernetes;
 import wso2/soap;
-import ballerina/system;
 
 @kubernetes:Ingress {
     hostname:"ballerina.guides.io",
@@ -19,10 +18,12 @@ import ballerina/system;
 @kubernetes:Deployment {
     image:"ballerina.guides.io/soap-client:v1.0",
     name:"soap-client",
-    //dockerHost: "tcp://192.168.99.100:2376",
-    //dockerCertPath: "/home/bhashinee/.minikube",
     copyFiles: [{ target: "/home",
-        source: "/home/bhashinee/ESB/wso2esb-4.8.1/repository/resources/security/client-truststore.p12" }]
+        source: "soap-messaging/soap/resources/client-truststore.p12" }],
+    username:"<USERNAME>",
+    password:"<PASSWORD>",
+    push:true,
+    imagePullPolicy:"Always"
 }
 
 listener http:Listener SoapTestEndpoint = new(9090);
@@ -41,9 +42,7 @@ soap:SoapConfiguration soapConfig = {
 
 soap:Soap11Client soapClient = new("https://soap-service:8243/services/passwordDigest", soapConfig = soapConfig);
 
-//This is a passthrough service.
 service SoapTestService on SoapTestEndpoint {
-    //This resource allows all HTTP methods.
     @http:ResourceConfig {
         path: "/"
     }
@@ -67,13 +66,13 @@ service SoapTestService on SoapTestEndpoint {
 
         var clientResponse = soapClient->sendReceive("/", "urn:mediate", body, options = options);
 
-        log:printInfo("Request will be forwarded to Local Shop  .......");
+        log:printInfo("Request will be forwarded soap backend  .......");
         if (clientResponse is soap:SoapResponse) {
-            //Sends the client response to the caller.
+            // Sends the client response to the caller.
             var result = caller->respond("Hello Soap !!!");
             handleError(result);
         } else {
-            //Sends the error response to the caller.
+            // Sends the error response to the caller.
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload(untaint <string>clientResponse.detail().message);
