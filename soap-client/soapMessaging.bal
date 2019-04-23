@@ -48,11 +48,7 @@ service SoapTestService on SoapTestEndpoint {
     }
     resource function sendSoapRequest(http:Caller caller, http:Request req) {
 
-        xml body = xml `<m0:getQuote xmlns:m0="http://services.samples">
-                        <m0:request>
-                            <m0:symbol>WSO2</m0:symbol>
-                        </m0:request>
-                    </m0:getQuote>`;
+        xml body = xml `<body/>`;
 
         soap:UsernameToken usernameToken = {
             username: "admin",
@@ -68,9 +64,14 @@ service SoapTestService on SoapTestEndpoint {
 
         log:printInfo("Request will be forwarded soap backend  .......");
         if (clientResponse is soap:SoapResponse) {
-            // Sends the client response to the caller.
-            var result = caller->respond("Hello Soap !!!");
-            handleError(result);
+            var respPayload = clientResponse["payload"];
+            if (respPayload is xml) {
+                xml payload = xml `<hello>world</hello>`;
+                if (respPayload == payload) {
+                    var result = caller->respond("Soap is working !");
+                    handleError(result);
+                }
+            }
         } else {
             // Sends the error response to the caller.
             http:Response res = new;
