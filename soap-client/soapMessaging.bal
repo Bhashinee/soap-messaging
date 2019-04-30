@@ -5,7 +5,7 @@ import ballerinax/kubernetes;
 import wso2/soap;
 
 @kubernetes:Ingress {
-    hostname:"ballerina.guides.io",
+    hostname:"ballerina.soap.io",
     name:"soap-client",
     path:"/"
 }
@@ -16,7 +16,7 @@ import wso2/soap;
 }
 
 @kubernetes:Deployment {
-    image:"ballerina.guides.io/soap-client:v1.0",
+    image:"ballerina.soap.io/soap-client:v1.0",
     name:"soap-client",
     copyFiles: [{ target: "/home",
         source: "soap-client/resources/client-truststore.p12" }],
