@@ -19,7 +19,7 @@ import wso2/soap;
     image:"ballerina.guides.io/soap-client:v1.0",
     name:"soap-client",
     copyFiles: [{ target: "/home",
-        source: "soap-messaging/soap/resources/client-truststore.p12" }],
+        source: "soap-client/resources/client-truststore.p12" }],
     username:"<USERNAME>",
     password:"<PASSWORD>",
     push:true,
