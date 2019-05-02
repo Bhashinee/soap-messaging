@@ -68,7 +68,9 @@ service SoapTestService on SoapTestEndpoint {
             if (respPayload is xml) {
                 xml payload = xml `<hello>world</hello>`;
                 if (respPayload == payload) {
-                    var result = caller->respond("Soap is working !");
+                    string soapVersion = clientResponse.soapVersion;
+                    string response = soapVersion + " is working !";
+                    var result = caller->respond(untaint response);
                     handleError(result);
                 }
             }
