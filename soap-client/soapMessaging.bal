@@ -44,7 +44,7 @@ soap:Soap11Client soapClient = new("https://soap-service:8243/services/passwordD
 
 service SoapTestService on SoapTestEndpoint {
     @http:ResourceConfig {
-        path: "/"
+        path: "/sendSoapRequest"
     }
     resource function sendSoapRequest(http:Caller caller, http:Request req) {
 
@@ -75,12 +75,44 @@ service SoapTestService on SoapTestEndpoint {
                 }
             }
         } else {
-            // Sends the error response to the caller.
-            http:Response res = new;
-            res.statusCode = 500;
-            res.setPayload(untaint <string>clientResponse.detail().message);
-            var result = caller->respond(res);
-            handleError(result);
+            sendError(<string>clientResponse.detail().message, caller);
+        }
+    }
+
+    @http:ResourceConfig {
+        path: "/sendErrorSoapRequest"
+    }
+    resource function sendErrorSoapRequest(http:Caller caller, http:Request req) {
+
+        xml body = xml `<body/>`;
+
+        soap:UsernameToken usernameToken = {
+            username: "admin",
+            password: "admin1",
+            passwordType: soap:PASSWORD_DIGEST
+        };
+
+        soap:Options options = {
+            usernameToken: usernameToken
+        };
+
+        var clientResponse = soapClient->sendReceive("/", "urn:mediate", body, options = options);
+
+        log:printInfo("Request will be forwarded soap backend  .......");
+        if (clientResponse is soap:SoapResponse) {
+            var respPayload = clientResponse["payload"];
+            if (respPayload is xml) {
+                xml payload = xml `<faultstring>The security token could not be authenticated or authorized</faultstring>`;
+                if (respPayload["faultstring"] == payload) {
+                    http:Response errorResponse = new;
+                    errorResponse.statusCode = 401;
+                    errorResponse.setTextPayload("Authentication failure");
+                    var result = caller->respond(errorResponse);
+                    handleError(result);
+                }
+            }
+        } else {
+            sendError(<string>clientResponse.detail().message, caller);
         }
     }
 }
@@ -89,4 +121,13 @@ function handleError(error? result) {
     if (result is error) {
         log:printError(result.reason(), err = result);
     }
+}
+
+function sendError(string message, http:Caller caller) {
+    // Sends the error response to the caller.
+    http:Response res = new;
+    res.statusCode = 500;
+    res.setPayload(untaint message);
+    var result = caller->respond(res);
+    handleError(result);
 }
